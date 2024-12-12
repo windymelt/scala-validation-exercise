@@ -172,3 +172,27 @@ val PrintPositiveInt = IsInt |> Positive |> PrettyPrint
 PrintPositiveInt.run(42)
 PrintPositiveInt.run(-42)
 PrintPositiveInt.run("666")
+
+// どちらかにマッチすればいい、ということもある。
+// truthyな値を受け入れるスキーマを作ろう
+val TruthyString = new Schema1[String, Boolean] {
+  def run(in: String): Either[SchemaFailed[String], Boolean] = in match
+    case "" => Right(false)
+    case _ => Right(true) 
+}
+
+def TruthyNumber[N](using num: Numeric[N]) = new Schema1[N, Boolean] {
+  def run(in: N): Either[SchemaFailed[N], Boolean] = in match
+    case n if num.equiv(n, num.zero) => Right(false)
+    case _ => Right(true)
+}
+
+def TruthyBoolean = new Schema1[Boolean, Boolean] {
+  def run(in: Boolean): Either[SchemaFailed[Boolean], Boolean] = Right(in)
+}
+
+TruthyString.run("true")
+TruthyNumber[Int].run(42)
+TruthyNumber[Double].run(0.0)
+
+// TruthyString | TruthyNumber | TruthyBoolean と書けるようにする
